@@ -1,69 +1,44 @@
+#практика
+"""Завдання на обробку даних: Створити програму,
+яка використовує threading.Thread для паралельної
+обробки даних у великому списку. Наприклад, розрахунок
+середнього значення, медіани, чи сортування великого масиву чисел."""
 import threading
-
-def print_cube(num):
-    print("Куб: ", num * num * num)
-def print_square(num):
-    print("Квадрат: ", num * num)
-t1 = threading.Thread(target=print_cube, args=(10, ))
-t2 = threading.Thread(target=print_square, args=(10, ))
-t1.start()
-t2.start()
-t1.join()
-t2.join()
-print("Готово!")
-
-import threading
-from time import sleep
-
-counter = 0
-
-def print_cube(num):
-    global counter
-    while True:
-        counter += 1
-        print(f'\ncounter {counter}\nCub:', num ** 3)
-        sleep(1.5)
-
-
-
-def print_square(num):
-    global counter
-    while True:
-        counter += 1
-        print(f'\ncounter {counter}\nSquare:', num ** 2)
-        sleep(1.8)
+import random
+import time
+#функція обчислення середнього значення
+def calculate_mean(arr):
+    mean = sum(arr) / len(arr)
+    return mean
+#великий масив данних
+data_size = 10000000
+data = [random.randint(0, 1000) for _ in range(data_size)]
+start_time = time.time()
+num_threads = 4
+chunk_size = len(data) // num_threads
+chunks = [data[i: i + chunk_size] for i in range(0, len(data), chunk_size)]
+results = []
+#створення потоків
+threads = []
+for chunk in chunks:
+    thread = threading.Thread(target=lambda x: results.append(calculate_mean(x)),
+                              args=(chunk, ))
+    threads.append(thread)
+    print(0,thread)
+    thread.start()
+#чекаємо завершення кожного потоку
+print(1, threads)
+for thread in threads:
+    thread.join()
+print(2,threads)
+#загальне середнє значення
+total_mean = sum(results) / len(results)
+end_time = time.time()
+print("Результат: ", {total_mean}, end_time - start_time)
 
 
-
-t1 = threading.Thread(target=print_cube, args=(10,))
-t2 = threading.Thread(target=print_square, args=(10,))
-print('test')
-
-t1.start()
-t2.start()
-print('test2')
-t1.join()
-t2.join()
-print('test2')
-print('end')
-
-import threading
-
-# Створення демонстраційних потоків (для прикладу)
-
-def worker():
-    print("Worker thread is executing")
-
-# Запуск декількох робітників
-
-for i in range(5):
-    t = threading.Thread(target=worker)
-    t.start()
-
-# Вивід списку всіх живих потоків
-
-current_threads = threading.enumerate()
-for thread in current_threads:
-        print(f"Thread Name: {thread.name}. Alive: {thread.is_alive()}")
-
+start_time = time.time()
+calculate_mean(data)
+end_time = time.time()
+print(end_time - start_time)
 
