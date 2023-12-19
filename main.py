@@ -1,32 +1,28 @@
-# Завдання 2
-# Користувач вводить з клавіатури значення у список.
-# Після чого запускаються два потоки. Перший потік знаходить суму елементів у списку.
-# Другий потік знаходить середнє арифметичне у списку. Результати обчислень
-# виведіть на екран.
+# Завдання 4
+# Користувач вводить з клавіатури шлях до файлу та
+# слово для пошуку. Після чого запускається потік для
+# пошуку цього слова у файлі. Результат пошуку виведіть
+# на екран.
 
 import threading
 
-user_input = input("Введіть значення у список (розділіть числа пробілами): ")
-numbers = [float(x) for x in user_input.split()]
+file_path = input("Введіть шлях до файлу: ")
+search_word = input("Введіть слово для пошуку: ")
 
-# Функція для знаходження суми елементів у списку
-def find_summ(numbers):
-    global summ_result
-    summ_result = sum(numbers)
+with open(file_path, "r") as file:
+    content = file.read()
 
-# Функція для знаходження середнього арифметичного у списку
-def find_aryfmet(numbers):
-    global aryfmet_result
-    aryfmet_result = sum(numbers) / len(numbers)
+# Функція для пошуку слова у файлі
+def find_word(content, search_word):
+    count_occurrences = content.count(search_word)
+    return count_occurrences
 
-# Створення потоків
-summ_thread = threading.Thread(target=find_summ, args=(numbers,))
-aryfmet_thread = threading.Thread(target=find_aryfmet, args=(numbers,))
 
-summ_thread.start()
-aryfmet_thread.start()
-summ_thread.join()
-aryfmet_thread.join()
+search_thread = threading.Thread(target=find_word, args=(content, search_word))
 
-print("Сума елементів у списку:", summ_result)
-print("Середнє арифметичне у списку:", aryfmet_result)
+search_thread.start()
+
+search_thread.join()
+
+result = find_word(content, search_word)
+print(f"Слово '{search_word}' зустрічається у файлі {result} разів.")
