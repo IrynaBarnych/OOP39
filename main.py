@@ -1,70 +1,42 @@
-# Завдання 2
-# Користувач вводить з клавіатури шлях до файлу. Після
-# чого запускаються три потоки. Перший потік заповнює файл
-# випадковими числами. Два інші потоки очікують на заповнення.
-# Коли файл заповнений, обидва потоки стартують.
-# Перший потік знаходить усі прості числа,
-# другий потік знаходить факторіал кожного числа у файлі.
-# Результати пошуку
-# кожен потік має записати у новий файл. Виведіть на екран
-# статистику виконаних операцій.
+# Завдання 3
+# Користувач вводить з клавіатури шлях до існуючої та
+# до нової директорії. Після чого запускається потік, який має
+# скопіювати вміст директорії у нове місце. Збережіть структуру
+# директорії. Виведіть статистику виконаних операцій на екран.
 
 import threading
-import random
-import math
+import shutil
+import os
 
-NUMBERS_COUNT = 10
+def copy_directory(source_path, destination_path):
+    try:
 
-count_even_numbers = 0
-count_odd_numbers = 0
-count_primes = 0
-factorials = []
-
-file_path = input("Введіть шлях до файлу: ")
-
-def generate_random_numbers(file_name):
-    random_numbers = [str(random.randint(1, 10)) + "\n" for _ in range(NUMBERS_COUNT)]
-    with open(file_name, "w") as file:
-        file.writelines(random_numbers)
-
-def find_primes(numbers, file_name):
-    global count_primes
-    primes = [str(num) + "\n" for num in numbers if is_prime(num)]
-    count_primes = len(primes)
-    with open(file_name, "w") as file:
-        file.writelines(primes)
-
-def calculate_factorials(numbers, file_name):
-    global factorials
-    factorials = [str(math.factorial(num)) + "\n" for num in numbers]
-    with open(file_name, "w") as file:
-        file.writelines(factorials)
-
-def is_prime(num):
-    if num < 2:
+        shutil.copytree(source_path, destination_path)
+        return True
+    except Exception as e:
+        print(f"Помилка копіювання: {e}")
         return False
-    for i in range(2, int(math.sqrt(num)) + 1):
-        if num % i == 0:
-            return False
-    return True
 
-generate_thread = threading.Thread(target=generate_random_numbers, args=(file_path,))
-primes_thread = threading.Thread(target=find_primes, args=(range(1, NUMBERS_COUNT + 1), "primes.txt"))
-factorials_thread = threading.Thread(target=calculate_factorials, args=(range(1, NUMBERS_COUNT + 1), "factorials.txt"))
-
-generate_thread.start()
-generate_thread.join()
-
-primes_thread.start()
-factorials_thread.start()
-
-primes_thread.join()
-factorials_thread.join()
-
-print("Кількість простих чисел: ", count_primes)
-print("Факторіали чисел збережені у файлі 'factorials.txt'")
+def count_files_and_subdirectories(directory):
+    files = 0
+    subdirectories = 0
+    for _, dirs, filenames in os.walk(directory):
+        subdirectories += len(dirs)
+        files += len(filenames)
+    return files, subdirectories
 
 
+source_directory = input("Введіть шлях до існуючої директорії: ")
+destination_directory = input("Введіть шлях до нової директорії: ")
 
+copy_thread = threading.Thread(target=copy_directory, args=(source_directory, destination_directory))
 
+copy_thread.start()
+copy_thread.join()
 
+if os.path.exists(destination_directory):
+    files, subdirectories = count_files_and_subdirectories(destination_directory)
+    print(f"Кількість скопійованих файлів: {files}")
+    print(f"Кількість скопійованих піддиректорій: {subdirectories}")
+else:
+    print("Копіювання не вдалося.")
