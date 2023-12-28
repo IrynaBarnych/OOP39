@@ -1,42 +1,60 @@
-# Завдання 3
-# Користувач вводить з клавіатури шлях до існуючої та
-# до нової директорії. Після чого запускається потік, який має
-# скопіювати вміст директорії у нове місце. Збережіть структуру
-# директорії. Виведіть статистику виконаних операцій на екран.
+# Завдання 4
+# Користувач вводить з клавіатури шлях до існуючої директорії та слово для пошуку. Після чого запускаються два
+# потоки. Перший потік має знайти файли з потрібним словом
+# і злити їх вміст в один файл. Другий потік очікує на завершення роботи першого потоку і проводить виключення усіх
+# заборонених слів (список цих слів потрібно зчитати з файлу
+# із забороненими словами) з отриманого файлу. Виведіть статистику виконаних операцій на екран.
 
 import threading
-import shutil
 import os
 
-def copy_directory(source_path, destination_path):
-    try:
+def find_and_merge_files(directory, search_word, merged_file_path):
+    files_with_word = []
 
-        shutil.copytree(source_path, destination_path)
-        return True
-    except Exception as e:
-        print(f"Помилка копіювання: {e}")
-        return False
+    for root, _, filenames in os.walk(directory):
+        for filename in filenames:
+            filepath = os.path.join(root, filename)
+            with open(filepath, 'r') as file:
+                content = file.read()
+                if search_word in content:
+                    files_with_word.append(filepath)
 
-def count_files_and_subdirectories(directory):
-    files = 0
-    subdirectories = 0
-    for _, dirs, filenames in os.walk(directory):
-        subdirectories += len(dirs)
-        files += len(filenames)
-    return files, subdirectories
+    merged_content = ""
+    for file_path in files_with_word:
+        with open(file_path, 'r') as file:
+            merged_content += file.read()
 
+    with open(merged_file_path, 'w') as merged_file:
+        merged_file.write(merged_content)
 
-source_directory = input("Введіть шлях до існуючої директорії: ")
-destination_directory = input("Введіть шлях до нової директорії: ")
+def exclude_forbidden_words(input_file_path, forbidden_words_file, output_file_path):
+    with open(input_file_path, 'r') as input_file:
+        content = input_file.read()
 
-copy_thread = threading.Thread(target=copy_directory, args=(source_directory, destination_directory))
+    with open(forbidden_words_file, 'r') as forbidden_file:
+        forbidden_words = forbidden_file.read().split()
 
-copy_thread.start()
-copy_thread.join()
+    for word in forbidden_words:
+        content = content.replace(word, '')
 
-if os.path.exists(destination_directory):
-    files, subdirectories = count_files_and_subdirectories(destination_directory)
-    print(f"Кількість скопійованих файлів: {files}")
-    print(f"Кількість скопійованих піддиректорій: {subdirectories}")
-else:
-    print("Копіювання не вдалося.")
+    with open(output_file_path, 'w') as output_file:
+        output_file.write(content)
+
+directory_path = input("Введіть шлях до директорії: ")
+search_word = input("Введіть слово для пошуку: ")
+
+forbidden_words_file_path = input("Введіть повний шлях до файлу з забороненими словами ('forbidden_words.txt'): ")
+
+merged_file_path = 'merged_content.txt'
+output_file_path = 'output_content.txt'
+
+merge_thread = threading.Thread(target=find_and_merge_files, args=(directory_path, search_word, merged_file_path))
+exclude_thread = threading.Thread(target=exclude_forbidden_words,
+                                  args=(merged_file_path, forbidden_words_file_path, output_file_path))
+
+merge_thread.start()
+merge_thread.join()
+exclude_thread.start()
+exclude_thread.join()
+
+print("Операції завершено.")
